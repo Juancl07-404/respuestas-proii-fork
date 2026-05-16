@@ -96,27 +96,67 @@ public class EjemploCast {
 ## 6. Respecto a la ocultación de información y herencia, ¿qué significa acceso **"protegido"** de métodos y/o atributos? ¿Cómo se implementa en Java? Pon un ejemplo de uso de en la clase `Soldado` para que su nombre sea protegido y pueda usarse en el método de poner bombas del `Zapador`.
 
 ### Respuesta
+El acceso protegido es un nivel de visibilidad intermedio. Permite que los atributos o métodos sean accesibles para las clases que se encuentran dentro del mismo paquete y, de forma exclusiva, por cualquier subclase que herede de ella, aunque esté en un paquete diferente.
 
+Se implementa en Java utilizando la palabra clave protected. Ofrece una manera cómoda para que los desarrolladores de subclases manipulen variables internas heredadas directamente, sin necesidad de recurrir a intermediarios públicos.
+class Soldado {
+    protected String nombre; // Visible para subclases
+    public Soldado(String nombre) { this.nombre = nombre; }
+}
+
+class Zapador extends Soldado {
+    public Zapador(String nombre) { super(nombre); }
+    public void ponerBomba() {
+        System.out.println(this.nombre + " pone una bomba."); // Acceso directo válido
+    }
+}
 
 ## 7. En los lenguajes orientados a objetos ¿hay una **clase base** para todos los objetos? ¿Ocurre en todos los lenguajes? ¿Qué ocurre en Java?
 
 ### Respuesta
+No ocurre en todos los lenguajes. En entornos como C++, no existe una raíz común obligatoria, permitiendo crear múltiples árboles de herencia totalmente independientes y aislados entre sí.
 
+En Java, el diseño es monomórfico: todas las clases heredan implícitamente de una única clase base universal llamada java.lang.Object. Si una clase no extiende a otra, el compilador la vincula automáticamente a esta raíz.
+
+Gracias a este diseño, se garantiza que cualquier objeto de Java comparta un conjunto mínimo de métodos estándar predefinidos, como toString(), equals() o hashCode().
 
 ## 8. ¿Qué es la **"herencia múltiple"**? ¿Existe en Java herencia múltiple?
 
 ### Respuesta
+La herencia múltiple es la capacidad de un lenguaje de programación para permitir que una subclase herede el estado y comportamiento de varias superclases simultáneamente (por ejemplo, que una clase copie propiedades de dos madres distintas).
 
+En Java no existe la herencia múltiple de clases. Se limitó el diseño a herencia simple (extends a una sola clase) para evitar problemas de ambigüedad y conflictos de nombres, conocidos habitualmente como el "problema del diamante".
+
+Para cubrir las necesidades donde una clase debe cumplir con diferentes comportamientos a la vez, Java sustituye la herencia múltiple mediante el uso de interfaces.
 
 ## 9. Las excepciones en los lenguajes orientados a objetos son objetos. Por tanto, se pueden crear excepciones personalizadas. Pon un ejemplo en Java de una excepción personalizada (`UsuarioNoEncontradoException`), que sea *no controlada* y que además este compuesto con un `Usuario`, para saber qué `Usuario` dio el problema. Permite además que se pueda incluir la causa, es decir, sobrecarga el constructor para tener una versión que permita añadir la causa subyacente. 
 
 ### Respuesta
+Para crear una excepción personalizada no controlada (Unchecked), la clase debe heredar obligatoriamente de RuntimeException. De esta manera, el compilador no forzará al desarrollador a gestionarla de manera estricta mediante bloques try-catch allá donde se use.
 
+Es una buena práctica añadir atributos a estas excepciones para dotarlas de contexto técnico. Al incluir un objeto Usuario, el código que capture el error dispondrá de la información exacta sobre qué entidad provocó el fallo.
+class Usuario { private String login; public Usuario(String login) { this.login = login; } }
+
+class UsuarioNoEncontradoException extends RuntimeException {
+    private final Usuario usuarioAfectado;
+
+    public UsuarioNoEncontradoException(String msg, Usuario usuario) {
+        super(msg);
+        this.usuarioAfectado = usuario;
+    }
+
+    public UsuarioNoEncontradoException(String msg, Usuario usuario, Throwable causa) {
+        super(msg, causa); // Permite añadir la causa subyacente
+        this.usuarioAfectado = usuario;
+    }
+}
 
 ## 10. Herencia vs. Composición. Se dice que no se debe emplear herencia simplemente por reutilizar código, es decir, que si quiero reutilizar código simplemente, no debo pensar en herencia como primera opción ¿por qué?
 
 ### Respuesta
+Porque la herencia establece una unión estructural extremadamente rígida y permanente. Si solo se busca reaprovechar unas líneas de código sin que exista una relación conceptual real de "es-un", se acaba dañando la arquitectura del programa.
 
+Al heredar sin justificación, la subclase se ve obligada a arrastrar métodos públicos de la superclase que no necesita, exponiendo una interfaz confusa y peligrosa que dificulta el mantenimiento futuro del software.
 
 ## 11. Herencia vs. Composición. Se dice que se debe *"favorecer la composición frente a la herencia"*, ¿por qué?
 
