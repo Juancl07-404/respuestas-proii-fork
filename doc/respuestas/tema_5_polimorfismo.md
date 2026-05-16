@@ -80,17 +80,38 @@ public class Principal {
 ## 4. Si sobreescribo un método, ¿puedo invocar el método base para trabajar a partir de su resultado? Haz que zapador cambie ligeramente la forma de saludar, que salude de forma normal, tal cual hace el soldado base, pero que además añada un "ZAPADOR A SUS ORDENES" ¿qué palabra clave del lenguaje has usado para invocar al método de la clase base?
 
 ### Respuesta
+Sí, es completamente lícito y habitual invocar la implementación del método de la clase base desde el método sobreescrito de la subclase. Esto evita la duplicación de código innecesaria y permite aplicar el concepto de extensión en lugar de sustitución, construyendo un comportamiento más específico sobre la base existente.
 
+Para romper la ambigüedad e indicar al compilador que se desea ejecutar el método original de la superclase, y no el de la subclase actual, se utiliza la palabra clave super. Sin esta palabra clave, si se llamara al método directamente por su nombre, el programa entraría en una recursión infinita invocándose a sí mismo.
 
+class Zapador extends Soldado {
+    @Override
+    public void saludar() {
+        super.saludar(); // Se invoca el método de la clase base (Soldado)
+        System.out.println("ZAPADOR A SUS ORDENES."); // Se añade comportamiento específico
+    }
+}
 ## 5. Al sobreescribir un método en Java, ¿qué restricciones existen sobre los tipos de los parámetros y el tipo de retorno? ¿Qué diferencia hay entre sobreescritura (*overriding*) y sobrecarga (*overloading*)? ¿Para qué sirve la anotación `@Override` y por qué es recomendable usarla siempre?
 
 ### Respuesta
+Al sobreescribir un método, los parámetros deben ser idénticos en número, tipo y orden a los del método original; si se altera algún parámetro, se estará creando un método diferente en lugar de sobreescribir el existente. Respecto al tipo de retorno, este debe ser igual o una subclase del tipo devuelto por el método base (lo que se conoce como retorno covariante). Además, el método sobreescrito no puede reducir la visibilidad del original (por ejemplo, pasar de public a private).
 
+La diferencia entre ambos conceptos radica en el momento de su resolución y su firma:
+
+Sobreescritura (Overriding): Ocurre entre clases con relación de herencia. El método mantiene la misma firma y se resuelve en tiempo de ejecución mediante ligadura dinámica.
+
+Sobrecarga (Overloading): Ocurre en la misma clase (o heredada). Son métodos con el mismo nombre pero diferente firma (distintos parámetros). Se resuelve en tiempo de compilación según los argumentos pasados.
+
+La anotación @Override es una directiva para el compilador que valida explícitamente que el método decorado realmente está sobreescrita de una superclase o interfaz. Su uso es altamente recomendado porque previene errores sutiles de escritura, como equivocarse en una mayúscula o en el tipo de un parámetro, lo que transformaría silenciosamente una sobreescritura intencionada en una sobrecarga accidental.
 
 ## 6. Entonces, cuando se estudia Java, ¿se emplea el polimorfismo desde el principio? Por ejemplo, sobreescribiendo `toString` o sobreescribiendo `equals`, ¿ya estoy usando polimorfismo?
 
 ### Respuesta
+Sí, en Java el polimorfismo se utiliza de manera implícita desde las primeras etapas del aprendizaje. Debido a que toda clase en Java extiende automáticamente de la raíz universal java.lang.Object, cualquier clase creada forma parte de un árbol de herencia y tiene acceso a sus métodos públicos.
 
+Cuando se redefine el método public String toString() o public boolean equals(Object obj) en una clase propia para personalizar la representación en texto o la lógica de comparación, se está realizando una sobreescritura de manual.
+
+El polimorfismo entra en acción, por ejemplo, cuando se pasa cualquier objeto al método System.out.println(miObjeto). Internamente, este método recibe una referencia genérica de tipo Object y ejecuta .toString(). Gracias a la ligadura dinámica, la máquina virtual ejecuta la versión específica programada en la clase del usuario, demostrando que el polimorfismo opera constantemente entre bastidores.
 
 ## 7. ¿Qué es una **"clase abstracta"**? ¿Qué es un **"método abstracto"**? ¿Puedo crear instancias de una clase abstracta? Pongamos un ejemplo en Java: Redefinamos `Soldado`, hagamos que, además del método `saluda` que ya tenía, tenga un método `atacar`, que sea abstracto y que cada tipo de soldado haga su acción cuando se le pida atacar. ¿Donde debemos poner `abstract`?
 
