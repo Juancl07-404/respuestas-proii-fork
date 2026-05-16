@@ -161,13 +161,46 @@ Al heredar sin justificación, la subclase se ve obligada a arrastrar métodos p
 ## 11. Herencia vs. Composición. Se dice que se debe *"favorecer la composición frente a la herencia"*, ¿por qué?
 
 ### Respuesta
+Porque la composición ofrece un acoplamiento mucho más débil y flexible. En lugar de ligar la identidad de una clase a otra, un objeto simplemente guarda una referencia de un componente externo para delegarle el trabajo (relación "tiene-un").
 
+Esta separación permite cambiar el comportamiento del objeto de forma dinámica en tiempo de ejecución (intercambiando el componente apuntado), facilita el mantenimiento del código y simplifica la realización de pruebas unitarias mediante réplicas (mocks).
 
 ## 12. Herencia vs. Composición. Se dice que la *"herencia rompe la encapsulación"*, ¿a qué se refiere esto?
 
 ### Respuesta
+Se refiere a que la subclase depende íntimamente de los detalles de implementación interna de su superclase para funcionar correctamente. La barrera de aislamiento que promete la encapsulación se vuelve difusa.
 
+Si el desarrollador de la clase base modifica la lógica interna de sus métodos, puede romper el comportamiento de las subclases de manera imprevista, a pesar de que la firma del método público no haya cambiado.
 
 ## 13. Pongamos un ejemplo de dos alternativas para lo mismo. Tenemos un `Estudiante` y un `Trabajador`, ambos tienen datos en común: el DNI y el nombre. Modelemos esto de dos formas: uno por herencia, con una superclase `Persona`, y otro con composición, con una clase `DatosPersonales`. Se debe recibir una instancia de `DatosPersonales` en el constructor de la clase `Estudiante` y `Trabajador`.
 
 ### Respuesta
+A continuación se muestran los dos enfoques estructurales básicos para unificar campos compartidos:
+
+Alternativa A: Por Herencia
+
+class Persona {
+    private String dni, nombre;
+    public Persona(String dni, String nombre) { this.dni = dni; this.nombre = nombre; }
+}
+class Estudiante extends Persona {
+    public Estudiante(String dni, String nombre) { super(dni, nombre); }
+}
+class Trabajador extends Persona {
+    public Trabajador(String dni, String nombre) { super(dni, nombre); }
+}
+
+Alternativa B: Por Composición
+
+class DatosPersonales {
+    private String dni, nombre;
+    public DatosPersonales(String dni, String nombre) { this.dni = dni; this.nombre = nombre; }
+}
+class EstudianteComposicion {
+    private DatosPersonales datos;
+    public EstudianteComposicion(DatosPersonales datos) { this.datos = datos; }
+}
+class TrabajadorComposicion {
+    private DatosPersonales datos;
+    public TrabajadorComposicion(DatosPersonales datos) { this.datos = datos; }
+}
