@@ -312,13 +312,118 @@ Por lo tanto, la mejora de la firma del método empleando wildcards resultaría 
 ## 16. Referencias a métodos. Podemos obtener una referencia a métodos de objetos o clases. Pon un ejemplo en JavaScript y en Java, de una clase `Persona` con un método `saludar`. En el código principal, crea una `Persona` con un nombre, y obtén una referencia a su método `saludar` en una variable local. Invoca `saludar` con esa referencia a su método `saludar`.
 
 ### Respuesta
+Las referencias a métodos son una forma compacta y legible de escribir expresiones lambda preexistentes, apuntando de forma directa a un método sin escribir el bloque de código que lo invoca.
 
+En JavaScript, se puede guardar una referencia directa al método de un objeto. Sin embargo, para no perder el contexto interno de la instancia (this), resulta necesario enlazar (hacer un bind) la referencia al propio objeto.
+
+class Persona {
+    constructor(nombre) { this.nombre = nombre; }
+    saludar() { console.log(`Hola, soy ${this.nombre}`); }
+}
+
+const p = new Persona("Ana");
+// Obtención de referencia ligando el contexto del objeto
+const refSaludar = p.saludar.bind(p); 
+
+refSaludar(); // Imprime: Hola, soy Ana
+
+En Java, se emplea el operador de doble dos puntos (::). El compilador interpreta automáticamente la firma del método apuntado para encajarla dentro de una interfaz funcional predefinida, como Runnable en caso de que no reciba parámetros ni retorne valores.
+
+class Persona {
+    private String nombre;
+    public Persona(String nombre) { this.nombre = nombre; }
+    public void saludar() { System.out.println("Hola, soy " + this.nombre); }
+}
+
+public class Referencias {
+    public static void main(String[] args) {
+        Persona p = new Persona("Ana");
+        
+        // Referencia directa al método de la instancia 'p'
+        Runnable refSaludar = p::saludar; 
+        
+        // Ejecución
+        refSaludar.run(); // Imprime: Hola, soy Ana
+    }
+}
 
 ## 17. ¿Qué tipos de referencias a método se pueden hacer en Java? Pon un ejemplo de referencia a método estático, a constructor, a método de instancia de una instancia concreta y a método de instancia sobre cualquier instancia.
 
 ### Respuesta
+Existen cuatro categorías principales para obtener referencias mediante el operador :: en Java, cubriendo los distintos modos en los que se alojan los métodos en la orientación a objetos.
 
+Método Estático: Apunta a métodos asociados a la clase, no al objeto. Ejemplo: transformar un string a entero.
+
+Referencia al Constructor: Sirve para emular fábricas de objetos de un tipo específico llamando a su constructor.
+
+Método de una instancia concreta: (Ya visto en la pregunta anterior), ejecuta el método atado a las variables locales de un objeto preexistente.
+
+Método de instancia arbitraria de un tipo particular: El método se llamará sobre el primer parámetro proporcionado en tiempo de ejecución, en lugar de ligarlo a un objeto concreto de antemano.
+
+import java.util.function.*;
+
+public class TiposReferencias {
+    public static void main(String[] args) {
+        // 1. Método Estático (Math.sqrt recibe double, devuelve double)
+        Function<Double, Double> raizCuadrada = Math::sqrt;
+
+        // 2. Referencia a Constructor (El String se pasa como argumento al constructor)
+        Function<String, StringBuilder> crearBuilder = StringBuilder::new;
+
+        // 3. Método de Instancia Concreta
+        String prefijo = "Dato: ";
+        Function<String, String> añadirPrefijo = prefijo::concat;
+
+        // 4. Método de Instancia Arbitraria
+        // El objeto sobre el que se aplica pasa a ser el primer parámetro
+        Function<String, String> pasarMayusculas = String::toUpperCase;
+    }
+}
 
 ## 18. Otro ejemplo expresivo. Ordena una lista de `Persona`, cada persona tiene un nombre y una edad (de tipo entero). Ordena la lista de `Persona` con `Collections.sort`, pasándole como comparador una expresión lambda que compare la edad de ambas personas y si tienen la misma edad, se ordene por orden alfabético del nombre. Crea dos versiones: Una con la función de comparación hecha manualmente, y otra empleando `Comparator`.
 
 ### Respuesta
+El uso de funciones lambda brilla particularmente al escribir criterios de ordenación, reduciendo notablemente el código tedioso derivado de implementar clases separadas solo para la interfaz Comparator.
+
+A continuación se muestra una aproximación puramente algorítmica y manual, implementando el método de comparación de la interfaz mediante una lambda tradicional y evaluando las reglas con un bloque imperativo habitual.
+
+import java.util.*;
+
+class Persona {
+    String nombre; int edad;
+    Persona(String n, int e) { this.nombre = n; this.edad = e; }
+    public String getNombre() { return nombre; }
+    public int getEdad() { return edad; }
+}
+
+public class Ordenacion {
+    public static void main(String[] args) {
+        List<Persona> lista = Arrays.asList(new Persona("Zoe", 30), new Persona("Ana", 30), new Persona("Luis", 25));
+
+        // VERSIÓN MANUAL: Lógica de comparación anidada
+        Collections.sort(lista, (p1, p2) -> {
+            int comparacionEdad = Integer.compare(p1.getEdad(), p2.getEdad());
+            if (comparacionEdad == 0) {
+                return p1.getNombre().compareTo(p2.getNombre());
+            }
+            return comparacionEdad;
+        });
+    }
+}
+
+La segunda versión recurre a los métodos utilitarios estáticos y predeterminados añadidos a la propia interfaz Comparator en Java 8. Esta aproximación encadena referencias a métodos funcionales preexistentes (Persona::getEdad y Persona::getNombre), configurando un motor de ordenación declarativo ("ordenar por esto, y luego por aquello") inmensamente más fácil de leer, comprender y mantener.
+
+import java.util.*;
+
+public class OrdenacionFuncional {
+    public static void main(String[] args) {
+        List<Persona> lista = Arrays.asList(new Persona("Zoe", 30), new Persona("Ana", 30), new Persona("Luis", 25));
+
+        // VERSIÓN MODERNA: Composición de comparadores mediante referencias a método
+        lista.sort(Comparator.comparingInt(Persona::getEdad)
+                             .thenComparing(Persona::getNombre));
+                             
+        // Salida tras el sort: Luis (25), Ana (30), Zoe (30)
+    }
+}
+```</T,></Number></Integer></T></T></T></T></T,></T,></Double,></T,></String,>
