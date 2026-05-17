@@ -225,26 +225,90 @@ Opcionalmente, estas interfaces pueden etiquetarse con la anotación @Functional
 ## 11. Creemos una interfaz funcional a mano. Por ejemplo, define la interfaz funcional del ejemplo que transforma la cadena en otra. Llámale `Transformador`, que define una función que convierte una cadena de texto (`String`) en otra (`String`).
 
 ### Respuesta
+Para definir una interfaz funcional propia que replique el comportamiento de transformación de textos, simplemente se declara una interfaz con un único método que reciba y retorne el tipo String. Se recomienda incorporar la anotación comentada previamente para blindar su diseño.
 
+Una vez definida, esta interfaz puede utilizarse como tipo de dato para cualquier expresión lambda que coincida con esa firma específica, en sustitución de la interfaz predefinida del sistema.
+
+@FunctionalInterface
+public interface Transformador {
+    // Único método abstracto: recibe un String y retorna un String
+    String transformar(String textoOriginal);
+}
+
+// Ejemplo de su uso directo
+// Transformador aMayusculas = s -> s.toUpperCase();
+// String resultado = aMayusculas.transformar("hola");
 
 ## 12. Ahora hagamos la interfaz funcional algo más genérica y empleando generics, para que permita definir un `Transformador` de un tipo en otro. Pon un ejemplo de un transformador que redondea un `Double` en un `Integer`.
 
 ### Respuesta
+La interfaz funcional anterior era rígida y solo permitía trabajar con texto. Aprovechando el mecanismo de parámetros de tipo (generics), se puede generalizar la interfaz para que acepte dos tipos distintos definidos en el momento de su instanciación: un tipo para el dato de entrada y otro tipo para el resultado.
 
+Al combinar generics e interfaces funcionales, se logra un grado de reutilización de código extremadamente alto, manteniendo la total seguridad en el chequeo de tipos estáticos en tiempo de compilación.
+
+@FunctionalInterface
+public interface TransformadorGenerico<T, R> {
+    // T: Tipo del argumento de entrada
+    // R: Tipo de retorno
+    R transformar(T entrada);
+}
+
+public class UsoTransformadorGenerico {
+    public static void main(String[] args) {
+        // Implementación de T=Double, R=Integer
+        TransformadorGenerico<Double, Integer> redondeador = 
+            numero -> (int) Math.round(numero);
+            
+        Integer resultado = redondeador.transformar(5.7);
+        System.out.println(resultado); // Imprime: 6
+    }
+}
 
 ## 13. `Transformador`, en su versión genérica, parece muy útil y reutilizable, hasta el punto de que es igual a una interfaz funcional que ya hay, que es `Function<T, R>`. Muestra las interfaces funcionales predefinidas que hay en Java.
 
 ### Respuesta
+Efectivamente, para evitar que cada programador recree constantemente la interfaz genérica de transformación, Java incluye en el paquete java.util.function un abanico de interfaces funcionales predefinidas que cubren la inmensa mayoría de casos de uso habituales.
 
+Las interfaces fundamentales se dividen según lo que reciben y lo que devuelven:
+
+Function<T, R>: Recibe un argumento de tipo T y devuelve un resultado de tipo R (equivalente al ejemplo anterior).
+
+Consumer<T>: Recibe un argumento de tipo T y no devuelve nada (void). Útil para consumir datos, procesarlos o imprimirlos, realizando operaciones con efectos secundarios.
+
+Supplier<T>: No recibe ningún argumento y devuelve un resultado de tipo T. Actúa como un proveedor o generador de objetos.
+
+Predicate<T>: Recibe un argumento de tipo T y devuelve siempre un valor booleano (boolean). Se emplea de manera intensiva para evaluar condiciones y aplicar filtros a colecciones de datos.
 
 ## 14. Vamos a ver ejemplos expresivos de funcional en Java. Estudiemos el `List.forEach`, como versión funcional del bucle `for`. Emplea el `forEach` para recorrer una lista de `Integer` y que muestre un mensaje si el entero es positivo.
 
 ### Respuesta
+El método forEach incluido en la API de colecciones de Java representa el paso del modelo imperativo de iteración al modelo declarativo funcional. En lugar de gestionar manualmente la estructura del bucle y los índices, se le dice directamente a la colección que aplique una operación (un Consumer) a cada uno de sus elementos internos.
 
+En el siguiente ejemplo, se emplea una expresión lambda para construir ese Consumer sobre la marcha, verificando la condición e imprimiendo el resultado en unas pocas líneas de código concisas.
+
+import java.util.Arrays;
+import java.util.List;
+
+public class BucleFuncional {
+    public static void main(String[] args) {
+        List<Integer> numeros = Arrays.asList(-2, 5, -8, 12, 0);
+        
+        // Iteración funcional usando forEach y un Consumer en forma de lambda
+        numeros.forEach(n -> {
+            if (n > 0) {
+                System.out.println("El número " + n + " es positivo");
+            }
+        });
+    }
+}
 ## 15. Repasando el tema de genericidad, fíjate en la firma de `forEach`, ¿por qué se usa `Consumer<? super T>` y no `Consumer<T>`? Explica qué significa **PECS**, y explícalo para el caso de mejorar el ejemplo del método `transformar` la hora de definir el tipo de la función transformadora.
 
 ### Respuesta
+La firma Consumer<? super T> emplea contravarianza (el comodín ? super) para brindar máxima flexibilidad al usar la colección. La sigla PECS significa "Producer Extends, Consumer Super". Esta regla mnemotécnica indica que si la estructura va a consumir datos proporcionados, se debe usar ? super (permitiendo que el consumidor acepte la clase base o cualquiera de sus superclases). Si la interfaz requiriera estrictamente un Consumer<Integer>, no se podría pasar a forEach un consumidor más genérico como un Consumer<Number> u Object, a pesar de que este último es perfectamente capaz de procesar e imprimir un Integer sin riesgo.
 
+Aplicando la regla PECS para diseñar una versión robusta del método genérico transformar(entrada, funcion), se deben analizar los roles. El método transformar consume la variable de entrada de tipo T y la provee a la función matemática, y a su vez extrae y devuelve un objeto de tipo R generado por esa función.
+
+Por lo tanto, la mejora de la firma del método empleando wildcards resultaría en public static <T, R> R transformar(T entrada, Function<? super T, ? extends R> funcion). Esto garantiza que la función sea capaz de aceptar elementos del tipo T o supertipos generales (actuando de consumidor de la entrada) y devolver elementos de tipo R o sus subtipos específicos (actuando de productor para el retorno global).
 ## 16. Referencias a métodos. Podemos obtener una referencia a métodos de objetos o clases. Pon un ejemplo en JavaScript y en Java, de una clase `Persona` con un método `saludar`. En el código principal, crea una `Persona` con un nombre, y obtén una referencia a su método `saludar` en una variable local. Invoca `saludar` con esa referencia a su método `saludar`.
 
 ### Respuesta
